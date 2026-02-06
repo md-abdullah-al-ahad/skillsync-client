@@ -6,26 +6,26 @@ export async function registerUser(data: {
   name: string;
   email: string;
   password: string;
-  role: 'STUDENT' | 'TUTOR';
+  role: "STUDENT" | "TUTOR";
 }) {
   try {
     const result = await authService.register(data);
-    
+
     if (result.error) {
       return {
         success: false,
-        error: result.error.message || 'Registration failed'
+        error: result.error.message || "Registration failed",
       };
     }
-    
+
     return {
       success: true,
-      data: result.data
+      data: result.data,
     };
   } catch (error) {
     return {
       success: false,
-      error: 'An unexpected error occurred during registration'
+      error: "An unexpected error occurred during registration",
     };
   }
 }
@@ -36,22 +36,22 @@ export async function loginUser(credentials: {
 }) {
   try {
     const result = await authService.login(credentials);
-    
+
     if (result.error) {
       return {
         success: false,
-        error: result.error.message || 'Login failed'
+        error: result.error.message || "Login failed",
       };
     }
-    
+
     return {
       success: true,
-      data: result.data
+      data: result.data,
     };
   } catch (error) {
     return {
       success: false,
-      error: 'An unexpected error occurred during login'
+      error: "An unexpected error occurred during login",
     };
   }
 }
