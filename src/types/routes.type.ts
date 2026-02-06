@@ -1,4 +1,10 @@
+import { ReactNode } from "react";
+
 export interface Route {
-  name: string;
-  path: string;
+  title: string;
+  items: {
+    title: string;
+    url: string;
+    icon?: ReactNode;
+  }[];
 }
