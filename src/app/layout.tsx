@@ -16,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SkillSync - Connect with Expert Tutors",
-  description: "Find and connect with expert tutors for personalized learning experiences",
+  description:
+    "Find and connect with expert tutors for personalized learning experiences",
 };
 
 export default function RootLayout({
