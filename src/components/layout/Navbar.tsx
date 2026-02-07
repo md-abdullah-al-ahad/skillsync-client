@@ -39,40 +39,51 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="mx-auto w-full max-w-6xl px-6 lg:px-10">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-foreground">SkillSync</span>
+          <Link href="/" className="group flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-muted/40">
+              <span className="h-2 w-2 rounded-full bg-foreground transition-transform duration-300 group-hover:scale-110" />
+            </span>
+            <span className="text-sm font-semibold uppercase tracking-[0.28em] text-foreground/80 transition-colors group-hover:text-foreground">
+              SkillSync
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden items-center space-x-6 md:flex">
+          <div className="hidden items-center gap-8 md:flex">
             <Link
               href="/"
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
+              className="relative text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60 transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all hover:after:w-full"
             >
               Home
             </Link>
             <Link
               href="/tutors"
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
+              className="relative text-xs font-semibold uppercase tracking-[0.2em] text-foreground/60 transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all hover:after:w-full"
             >
               Find Tutors
             </Link>
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3">
             <ModeToggle />
 
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-9 w-9 rounded-full"
+                  >
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user?.image || undefined} alt={user?.name} />
+                      <AvatarImage
+                        src={user?.image || undefined}
+                        alt={user?.name}
+                      />
                       <AvatarFallback className="bg-muted">
                         {user?.name?.charAt(0).toUpperCase() || "U"}
                       </AvatarFallback>
@@ -83,35 +94,46 @@ export default function Navbar() {
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium">{user?.name}</p>
-                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user?.email}
+                      </p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href={getDashboardLink()} className="flex items-center">
+                    <Link
+                      href={getDashboardLink()}
+                      className="flex items-center"
+                    >
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/profile" className="flex items-center">
+                    <Link
+                      href="/dashboard/profile"
+                      className="flex items-center"
+                    >
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()} className="flex items-center">
+                  <DropdownMenuItem
+                    onClick={() => logout()}
+                    className="flex items-center"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden items-center space-x-2 md:flex">
-                <Button variant="ghost" asChild>
+              <div className="hidden items-center gap-2 md:flex">
+                <Button variant="ghost" asChild className="px-4">
                   <Link href="/login">Log in</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="px-5">
                   <Link href="/register">Sign up</Link>
                 </Button>
               </div>
@@ -147,15 +169,25 @@ export default function Navbar() {
                     <>
                       <div className="border-t pt-4">
                         <p className="mb-2 text-sm font-medium">{user?.name}</p>
-                        <p className="mb-4 text-xs text-muted-foreground">{user?.email}</p>
+                        <p className="mb-4 text-xs text-muted-foreground">
+                          {user?.email}
+                        </p>
                       </div>
-                      <Button variant="outline" asChild className="w-full justify-start">
+                      <Button
+                        variant="outline"
+                        asChild
+                        className="w-full justify-start"
+                      >
                         <Link href={getDashboardLink()}>
                           <LayoutDashboard className="mr-2 h-4 w-4" />
                           Dashboard
                         </Link>
                       </Button>
-                      <Button variant="outline" asChild className="w-full justify-start">
+                      <Button
+                        variant="outline"
+                        asChild
+                        className="w-full justify-start"
+                      >
                         <Link href="/dashboard/profile">
                           <User className="mr-2 h-4 w-4" />
                           Profile

@@ -12,7 +12,7 @@ export default function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold">About SkillSync</h3>
             <p className="text-sm text-muted-foreground">
-              Connect with expert tutors for personalized learning experiences. 
+              Connect with expert tutors for personalized learning experiences.
               Find the perfect tutor to help you achieve your educational goals.
             </p>
           </div>
