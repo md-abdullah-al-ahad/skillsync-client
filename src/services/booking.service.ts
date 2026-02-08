@@ -1,4 +1,15 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const getBookingsApiUrl = () => {
+  if (typeof window !== "undefined") {
+    return "/api/bookings";
+  }
+
+  const backendBase =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api";
+
+  return `${backendBase}/bookings`;
+};
 
 const parseErrorMessage = (payload: unknown, fallback: string) => {
   if (payload && typeof payload === "object" && "message" in payload) {
@@ -20,8 +31,7 @@ export const bookingService = {
     price: number;
   }) => {
     try {
-      const res = await fetch(`${API_URL}/bookings`, {
-        method: "POST",
+      const res = await fetch(`${getBookingsApiUrl()}`, {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(data),
@@ -32,7 +42,9 @@ export const bookingService = {
       if (!res.ok || result?.success === false) {
         return {
           data: null,
-          error: { message: parseErrorMessage(result, "Failed to create booking") },
+          error: {
+            message: parseErrorMessage(result, "Failed to create booking"),
+          },
         };
       }
 
@@ -45,7 +57,7 @@ export const bookingService = {
   // GET /api/bookings
   getBookings: async () => {
     try {
-      const res = await fetch(`${API_URL}/bookings`, {
+      const res = await fetch(`${getBookingsApiUrl()}`, {
         credentials: "include",
       });
 
@@ -54,7 +66,9 @@ export const bookingService = {
       if (!res.ok || result?.success === false) {
         return {
           data: [],
-          error: { message: parseErrorMessage(result, "Failed to fetch bookings") },
+          error: {
+            message: parseErrorMessage(result, "Failed to fetch bookings"),
+          },
         };
       }
 
@@ -71,7 +85,7 @@ export const bookingService = {
   // GET /api/bookings/:id
   getBookingById: async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/bookings/${id}`, {
+      const res = await fetch(`${getBookingsApiUrl()}/${id}`, {
         credentials: "include",
       });
 
@@ -80,7 +94,9 @@ export const bookingService = {
       if (!res.ok || result?.success === false) {
         return {
           data: null,
-          error: { message: parseErrorMessage(result, "Failed to fetch booking") },
+          error: {
+            message: parseErrorMessage(result, "Failed to fetch booking"),
+          },
         };
       }
 
@@ -93,7 +109,7 @@ export const bookingService = {
   // PATCH /api/bookings/:id (Tutor only)
   completeBooking: async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/bookings/${id}`, {
+      const res = await fetch(`${getBookingsApiUrl()}/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -120,7 +136,7 @@ export const bookingService = {
   // PATCH /api/bookings/:id
   cancelBooking: async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/bookings/${id}`, {
+      const res = await fetch(`${getBookingsApiUrl()}/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -132,7 +148,9 @@ export const bookingService = {
       if (!res.ok || result?.success === false) {
         return {
           data: null,
-          error: { message: parseErrorMessage(result, "Failed to cancel booking") },
+          error: {
+            message: parseErrorMessage(result, "Failed to cancel booking"),
+          },
         };
       }
 

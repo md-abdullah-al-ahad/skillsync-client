@@ -1,12 +1,23 @@
 import { User } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const getUserApiUrl = () => {
+  if (typeof window !== "undefined") {
+    return "/api/user";
+  }
+
+  const backendBase =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api";
+
+  return `${backendBase}/user`;
+};
 
 export const userService = {
   // GET /api/user/me
   getCurrentUserProfile: async () => {
     try {
-      const res = await fetch(`${API_URL}/user/me`, {
+      const res = await fetch(`${getUserApiUrl()}/me`, {
         credentials: "include",
       });
 
@@ -20,7 +31,7 @@ export const userService = {
   // PUT /api/user/profile
   updateProfile: async (userData: Partial<User>) => {
     try {
-      const res = await fetch(`${API_URL}/user/profile`, {
+      const res = await fetch(`${getUserApiUrl()}/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

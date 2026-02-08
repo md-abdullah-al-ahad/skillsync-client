@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { authService } from "@/services/auth.service";
+import { userService } from "@/services/user.service";
 import { User } from "@/types";
 
 export function useAuth() {
@@ -12,12 +13,32 @@ export function useAuth() {
     checkAuth();
   }, []);
 
+  const extractUser = (payload: unknown): User | null => {
+    if (!payload || typeof payload !== "object") return null;
+    const maybePayload = payload as {
+      user?: User;
+      data?: User;
+    };
+    if (maybePayload.user) return maybePayload.user;
+    if (maybePayload.data) return maybePayload.data;
+    if ("role" in maybePayload) return maybePayload as User;
+    return null;
+  };
+
   const checkAuth = async () => {
     setIsLoading(true);
     try {
-      const { data } = await authService.getCurrentUser();
-      if (data?.user) {
-        setUser(data.user);
+      const profileResult = await userService.getCurrentUserProfile();
+      const profileUser = extractUser(profileResult.data);
+      if (profileUser) {
+        setUser(profileUser);
+        return;
+      }
+
+      const sessionResult = await authService.getCurrentUser();
+      const sessionUser = extractUser(sessionResult.data);
+      if (sessionUser) {
+        setUser(sessionUser);
       }
     } catch (error) {
       setUser(null);
@@ -33,8 +54,9 @@ export function useAuth() {
       return { success: false, error };
     }
 
-    if (data?.user) {
-      setUser(data.user);
+    const sessionUser = extractUser(data);
+    if (sessionUser) {
+      setUser(sessionUser);
     }
 
     return { success: true, data };
@@ -52,8 +74,9 @@ export function useAuth() {
       return { success: false, error: result.error };
     }
 
-    if (result.data?.user) {
-      setUser(result.data.user);
+    const sessionUser = extractUser(result.data);
+    if (sessionUser) {
+      setUser(sessionUser);
     }
 
     return { success: true, data: result.data };
@@ -61,6 +84,8 @@ export function useAuth() {
 
   const logout = async () => {
     await authService.logout();
+    // Clear role cookie used by middleware for role-based access control
+    document.cookie = "user-role=; path=/; max-age=0";
     setUser(null);
   };
 

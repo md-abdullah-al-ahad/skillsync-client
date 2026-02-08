@@ -25,16 +25,35 @@ export function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (isAuthenticated && isAuthRoute) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dashboard-redirect", request.url));
   }
 
-  // TODO: Add role-based access control
-  // This would require decoding the session token or making an API call
-  // to verify the user's role matches the route they're trying to access
-  // Example:
-  // - Students can only access /dashboard
-  // - Tutors can only access /tutor-dashboard
-  // - Admins can only access /admin-dashboard
+  // Role-based access control using cookie-stored role
+  // The role is set after login via /dashboard-redirect and stored in a cookie
+  const userRole = request.cookies.get("user-role")?.value;
+
+  if (isAuthenticated && userRole) {
+    // Students should only access /dashboard routes
+    if (isTutorRoute && userRole !== "TUTOR") {
+      const redirectPath =
+        userRole === "ADMIN" ? "/admin-dashboard" : "/dashboard";
+      return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
+
+    // Tutors should only access /tutor-dashboard routes
+    if (isStudentRoute && userRole !== "STUDENT") {
+      const redirectPath =
+        userRole === "ADMIN" ? "/admin-dashboard" : "/tutor-dashboard";
+      return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
+
+    // Admins should only access /admin-dashboard routes
+    if (isAdminRoute && userRole !== "ADMIN") {
+      const redirectPath =
+        userRole === "TUTOR" ? "/tutor-dashboard" : "/dashboard";
+      return NextResponse.redirect(new URL(redirectPath, request.url));
+    }
+  }
 
   return NextResponse.next();
 }

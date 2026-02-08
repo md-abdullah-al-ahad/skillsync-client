@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, FolderOpen } from "lucide-react";
+import { Plus, Trash2, Pencil, FolderOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,7 @@ export default function AdminCategoriesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -63,12 +64,20 @@ export default function AdminCategoriesPage() {
   }, []);
 
   const handleOpenDialog = () => {
+    setEditingCategory(null);
     setFormData({ name: "", slug: "" });
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (category: Category) => {
+    setEditingCategory(category);
+    setFormData({ name: category.name, slug: category.slug });
     setIsDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
+    setEditingCategory(null);
     setFormData({ name: "", slug: "" });
   };
 
@@ -97,14 +106,30 @@ export default function AdminCategoriesPage() {
     }
 
     setIsSaving(true);
-    const { error } = await adminService.createCategory(formData);
 
-    if (error) {
-      toast.error(error.message);
+    if (editingCategory) {
+      const { error } = await adminService.updateCategory(
+        editingCategory.id,
+        formData,
+      );
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Category updated successfully");
+        handleCloseDialog();
+        fetchCategories();
+      }
     } else {
-      toast.success("Category created successfully");
-      handleCloseDialog();
-      fetchCategories();
+      const { error } = await adminService.createCategory(formData);
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Category created successfully");
+        handleCloseDialog();
+        fetchCategories();
+      }
     }
     setIsSaving(false);
   };
@@ -199,13 +224,24 @@ export default function AdminCategoriesPage() {
 
                     {/* Actions */}
                     <TableCell className="text-right">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(category.id, category.name)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenEditDialog(category)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() =>
+                            handleDelete(category.id, category.name)
+                          }
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -219,7 +255,9 @@ export default function AdminCategoriesPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Category</DialogTitle>
+            <DialogTitle>
+              {editingCategory ? "Edit Category" : "Create New Category"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
@@ -265,7 +303,13 @@ export default function AdminCategoriesPage() {
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Creating..." : "Create Category"}
+                {isSaving
+                  ? editingCategory
+                    ? "Updating..."
+                    : "Creating..."
+                  : editingCategory
+                    ? "Update Category"
+                    : "Create Category"}
               </Button>
             </DialogFooter>
           </form>

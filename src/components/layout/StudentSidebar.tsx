@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { PanelLeftIcon } from "lucide-react";
 import { studentRoutes } from "@/routes/studentRoutes";
@@ -29,9 +30,20 @@ export default function StudentSidebar() {
         <div className="flex items-center justify-between px-2 py-1.5">
           <Link
             href="/dashboard"
-            className="text-xs font-semibold uppercase tracking-[0.28em] text-sidebar-foreground/80"
+            className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-sidebar-foreground/80"
           >
-            SkillSync
+            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-sidebar-border/60 bg-sidebar/80 p-1 overflow-hidden">
+              <Image
+                src="/skillsync-logo.png"
+                alt="SkillSync"
+                width={24}
+                height={24}
+                className="h-5 w-5 object-contain rounded-full"
+              />
+            </span>
+            <span className={cn(state === "collapsed" && "hidden")}>
+              SkillSync
+            </span>
           </Link>
           <button
             type="button"

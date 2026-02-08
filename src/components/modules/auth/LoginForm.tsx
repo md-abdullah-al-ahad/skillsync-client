@@ -5,7 +5,6 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-import { userService } from "@/services/user.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,48 +53,6 @@ export default function LoginForm() {
     }
     return fallback;
   };
-  const getRedirectPath = (role?: string) => {
-    switch (role) {
-      case "TUTOR":
-        return "/tutor-dashboard";
-      case "ADMIN":
-        return "/admin-dashboard";
-      case "STUDENT":
-      default:
-        return "/dashboard";
-    }
-  };
-  const extractRole = (payload: unknown) => {
-    if (!payload || typeof payload !== "object") return undefined;
-    const data = payload as {
-      user?: { role?: string };
-      session?: { user?: { role?: string } };
-    };
-    return data.user?.role || data.session?.user?.role;
-  };
-  const getRoleFromSession = async () => {
-    try {
-      const sessionResult = await authClient.getSession();
-      const sessionPayload = normalizeAuthResult(sessionResult);
-      return extractRole(sessionPayload.data);
-    } catch {
-      return undefined;
-    }
-  };
-  const getRoleFromProfile = async () => {
-    try {
-      const profileResult = await userService.getCurrentUserProfile();
-      const profilePayload = profileResult.data as unknown;
-      if (!profilePayload || typeof profilePayload !== "object") {
-        return undefined;
-      }
-      const maybePayload = profilePayload as { data?: { role?: string } };
-      const profile = "data" in maybePayload ? maybePayload.data : maybePayload;
-      return (profile as { role?: string } | undefined)?.role;
-    } catch {
-      return undefined;
-    }
-  };
 
   const form = useForm({
     defaultValues: {
@@ -122,13 +79,8 @@ export default function LoginForm() {
           url?: string;
         };
 
-        let userRole = payload?.user?.role;
-        if (!userRole) {
-          userRole = (await getRoleFromSession()) || (await getRoleFromProfile());
-        }
-
         toast.success("Successfully logged in!");
-        window.location.href = getRedirectPath(userRole);
+        window.location.href = "/dashboard-redirect";
       } catch (error: unknown) {
         const message =
           error instanceof Error

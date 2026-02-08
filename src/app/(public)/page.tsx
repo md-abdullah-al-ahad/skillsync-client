@@ -15,7 +15,7 @@ export default async function HomePage() {
         <div className="mx-auto w-full max-w-6xl px-6 lg:px-10">
           <div className="mx-auto max-w-4xl text-center">
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground">
-              Dual‑Tone Learning
+              Personalized Learning
             </p>
             <h1 className="mb-6 text-4xl font-semibold tracking-tight text-foreground md:text-6xl lg:text-7xl">
               Connect with Expert Tutors

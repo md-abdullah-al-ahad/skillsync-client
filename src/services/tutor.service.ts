@@ -1,5 +1,18 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+const getTutorApiUrl = () => {
+  if (typeof window !== "undefined") {
+    return "/api/tutor";
+  }
+
+  const backendBase =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api";
+
+  return `${backendBase}/tutor`;
+};
+
 export const tutorService = {
   // GET /api/tutors (with query params: category, minPrice, maxPrice, minRating, search)
   getTutors: async (
@@ -64,7 +77,7 @@ export const tutorService = {
   // PUT /api/tutor/profile
   updateTutorProfile: async (data: any) => {
     try {
-      const res = await fetch(`${API_URL}/tutor/profile`, {
+      const res = await fetch(`${getTutorApiUrl()}/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -85,7 +98,7 @@ export const tutorService = {
     endTime: string;
   }) => {
     try {
-      const res = await fetch(`${API_URL}/tutor/availability`, {
+      const res = await fetch(`${getTutorApiUrl()}/availability`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -102,7 +115,7 @@ export const tutorService = {
   // GET /api/tutor/availability
   getAvailability: async () => {
     try {
-      const res = await fetch(`${API_URL}/tutor/availability`, {
+      const res = await fetch(`${getTutorApiUrl()}/availability`, {
         credentials: "include",
       });
 
@@ -116,7 +129,7 @@ export const tutorService = {
   // DELETE /api/tutor/availability/:id
   deleteAvailability: async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/tutor/availability/${id}`, {
+      const res = await fetch(`${getTutorApiUrl()}/availability/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

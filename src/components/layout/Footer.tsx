@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -10,7 +11,21 @@ export default function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* About Section */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold">About SkillSync</h3>
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-muted/40 p-1 overflow-hidden">
+                <Image
+                  src="/skillsync-logo.png"
+                  alt="SkillSync"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 object-contain rounded-full"
+                />
+              </span>
+              <span className="text-sm font-semibold uppercase tracking-[0.28em] text-foreground/80">
+                SkillSync
+              </span>
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">About SkillSync</h3>
             <p className="text-sm text-muted-foreground">
               Connect with expert tutors for personalized learning experiences.
               Find the perfect tutor to help you achieve your educational goals.

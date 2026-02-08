@@ -1,6 +1,17 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const getAdminApiUrl = () => {
+  if (typeof window !== "undefined") {
+    return "/api/admin";
+  }
 
-const normalizeArray = <T,>(payload: unknown): T[] => {
+  const backendBase =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api";
+
+  return `${backendBase}/admin`;
+};
+
+const normalizeArray = <T>(payload: unknown): T[] => {
   if (Array.isArray((payload as { data?: unknown })?.data)) {
     return (payload as { data: T[] }).data;
   }
@@ -11,6 +22,20 @@ const normalizeArray = <T,>(payload: unknown): T[] => {
 };
 
 export const adminService = {
+  // GET /api/admin/stats
+  getStats: async () => {
+    try {
+      const res = await fetch(`${getAdminApiUrl()}/stats`, {
+        credentials: "include",
+      });
+
+      const result = await res.json();
+      return { data: result?.data ?? result, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to fetch stats" } };
+    }
+  },
+
   // GET /api/admin/users (with optional filters)
   getAllUsers: async (filters?: {
     role?: string;
@@ -18,15 +43,19 @@ export const adminService = {
     search?: string;
   }) => {
     try {
-      const url = new URL(`${API_URL}/admin/users`);
-
+      let url = `${getAdminApiUrl()}/users`;
       if (filters) {
+        const params = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => {
-          if (value) url.searchParams.append(key, value);
+          if (value) params.append(key, value);
         });
+        const query = params.toString();
+        if (query) {
+          url = `${url}?${query}`;
+        }
       }
 
-      const res = await fetch(url.toString(), {
+      const res = await fetch(url, {
         credentials: "include",
       });
 
@@ -44,7 +73,7 @@ export const adminService = {
   // PATCH /api/admin/users/:id (set status to BANNED)
   banUser: async (userId: string) => {
     try {
-      const res = await fetch(`${API_URL}/admin/users/${userId}`, {
+      const res = await fetch(`${getAdminApiUrl()}/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -61,7 +90,7 @@ export const adminService = {
   // PATCH /api/admin/users/:id (set status to ACTIVE)
   unbanUser: async (userId: string) => {
     try {
-      const res = await fetch(`${API_URL}/admin/users/${userId}`, {
+      const res = await fetch(`${getAdminApiUrl()}/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -78,7 +107,7 @@ export const adminService = {
   // GET /api/admin/bookings
   getAllBookings: async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/bookings`, {
+      const res = await fetch(`${getAdminApiUrl()}/bookings`, {
         credentials: "include",
       });
 
@@ -96,7 +125,11 @@ export const adminService = {
   // GET /api/categories
   getCategories: async () => {
     try {
-      const res = await fetch(`${API_URL}/categories`);
+      const url =
+        typeof window !== "undefined"
+          ? "/api/categories"
+          : `${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/categories`;
+      const res = await fetch(url, { credentials: "include" });
       const result = await res.json();
       return { data: normalizeArray(result), error: null };
     } catch (err) {
@@ -112,7 +145,11 @@ export const adminService = {
   // POST /api/categories (Admin only)
   createCategory: async (categoryData: { name: string; slug: string }) => {
     try {
-      const res = await fetch(`${API_URL}/categories`, {
+      const url =
+        typeof window !== "undefined"
+          ? "/api/categories"
+          : `${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/categories`;
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -126,10 +163,44 @@ export const adminService = {
     }
   },
 
+  // PUT /api/categories/:id (Admin only)
+  updateCategory: async (
+    id: string,
+    categoryData: { name?: string; slug?: string },
+  ) => {
+    try {
+      const url =
+        typeof window !== "undefined"
+          ? `/api/categories/${id}`
+          : `${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/categories/${id}`;
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(categoryData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          data: null,
+          error: { message: data?.message || "Failed to update category" },
+        };
+      }
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: { message: "Failed to update category" } };
+    }
+  },
+
   // DELETE /api/categories/:id (Admin only)
   deleteCategory: async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/categories/${id}`, {
+      const url =
+        typeof window !== "undefined"
+          ? `/api/categories/${id}`
+          : `${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/categories/${id}`;
+      const res = await fetch(url, {
         method: "DELETE",
         credentials: "include",
       });

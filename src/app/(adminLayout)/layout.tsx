@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { getRoleRedirectPath } from "@/lib/server-auth";
 
 export default async function AdminLayout({
   children,
@@ -20,40 +22,44 @@ export default async function AdminLayout({
   children: React.ReactNode;
   admin: React.ReactNode;
 }) {
-  // Check authentication
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("better-auth.session_token");
-
-  if (!sessionCookie) {
-    redirect("/login");
+  const redirectPath = await getRoleRedirectPath("ADMIN");
+  if (redirectPath) {
+    redirect(redirectPath);
   }
 
-  // TODO: Verify user role is ADMIN
-  // This should be done via an API call or session verification
-
   return (
-    <SidebarProvider>
-      <AdminSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/admin-dashboard">
-                  Dashboard
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Admin</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
-        <main className="flex-1 overflow-y-auto">{admin || children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <div className="flex flex-1">
+        <SidebarProvider>
+          <AdminSidebar />
+          <SidebarInset>
+            <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 px-4 backdrop-blur">
+              <div className="flex h-16 items-center gap-2">
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="/admin-dashboard">
+                        Dashboard
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Admin</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+            <main className="flex-1 overflow-y-auto">
+              {admin || children}
+            </main>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
+      <Footer />
+    </div>
   );
 }
