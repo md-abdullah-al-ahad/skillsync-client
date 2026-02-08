@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { userService } from "@/services/user.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +23,6 @@ const loginSchema = z.object({
 });
 
 export default function LoginForm() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const getFieldError = (errors: unknown[] | undefined) => {
     const err = errors?.[0] as any;
@@ -66,6 +65,37 @@ export default function LoginForm() {
         return "/dashboard";
     }
   };
+  const extractRole = (payload: unknown) => {
+    if (!payload || typeof payload !== "object") return undefined;
+    const data = payload as {
+      user?: { role?: string };
+      session?: { user?: { role?: string } };
+    };
+    return data.user?.role || data.session?.user?.role;
+  };
+  const getRoleFromSession = async () => {
+    try {
+      const sessionResult = await authClient.getSession();
+      const sessionPayload = normalizeAuthResult(sessionResult);
+      return extractRole(sessionPayload.data);
+    } catch {
+      return undefined;
+    }
+  };
+  const getRoleFromProfile = async () => {
+    try {
+      const profileResult = await userService.getCurrentUserProfile();
+      const profilePayload = profileResult.data as unknown;
+      if (!profilePayload || typeof profilePayload !== "object") {
+        return undefined;
+      }
+      const maybePayload = profilePayload as { data?: { role?: string } };
+      const profile = "data" in maybePayload ? maybePayload.data : maybePayload;
+      return (profile as { role?: string } | undefined)?.role;
+    } catch {
+      return undefined;
+    }
+  };
 
   const form = useForm({
     defaultValues: {
@@ -92,24 +122,13 @@ export default function LoginForm() {
           url?: string;
         };
 
-        if (payload?.redirect && payload?.url) {
-          window.location.href = payload.url;
-          return;
-        }
-
         let userRole = payload?.user?.role;
-
-        if (!payload?.user || !userRole) {
-          const sessionResult = await authClient.getSession();
-          const sessionPayload = normalizeAuthResult(sessionResult);
-          const sessionData = sessionPayload.data as {
-            user?: { role?: string };
-          };
-          userRole = sessionData?.user?.role;
+        if (!userRole) {
+          userRole = (await getRoleFromSession()) || (await getRoleFromProfile());
         }
 
         toast.success("Successfully logged in!");
-        router.push(getRedirectPath(userRole));
+        window.location.href = getRedirectPath(userRole);
       } catch (error: unknown) {
         const message =
           error instanceof Error

@@ -85,15 +85,15 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center text-muted-foreground">
                 <Mail className="mr-2 h-4 w-4" />
-                <span>support@skillsync.com</span>
+                <span>abdullah.cseruet@gmail.com</span>
               </li>
               <li className="flex items-center text-muted-foreground">
                 <Phone className="mr-2 h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+8801744479359</span>
               </li>
               <li className="flex items-center text-muted-foreground">
                 <MapPin className="mr-2 h-4 w-4" />
-                <span>123 Education St, Learning City</span>
+                <span>RUET, Rajshahi</span>
               </li>
             </ul>
           </div>
