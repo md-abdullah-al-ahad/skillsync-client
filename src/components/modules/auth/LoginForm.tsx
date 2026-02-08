@@ -3,14 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
-import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,6 +25,47 @@ const loginSchema = z.object({
 export default function LoginForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const getFieldError = (errors: unknown[] | undefined) => {
+    const err = errors?.[0] as any;
+    if (!err) return null;
+    if (typeof err === "string") return err;
+    if (typeof err === "object" && typeof err.message === "string") {
+      return err.message;
+    }
+    return null;
+  };
+  const normalizeAuthResult = (result: unknown) => {
+    if (!result || typeof result !== "object") {
+      return { data: null, error: "No response from server" };
+    }
+
+    const maybeResult = result as { data?: unknown; error?: unknown };
+    if ("data" in maybeResult || "error" in maybeResult) {
+      return { data: maybeResult.data, error: maybeResult.error };
+    }
+
+    return { data: result, error: null };
+  };
+  const getAuthErrorMessage = (error: unknown, fallback: string) => {
+    if (!error) return fallback;
+    if (typeof error === "string") return error;
+    if (typeof error === "object" && "message" in error) {
+      const message = (error as { message?: string }).message;
+      if (message) return message;
+    }
+    return fallback;
+  };
+  const getRedirectPath = (role?: string) => {
+    switch (role) {
+      case "TUTOR":
+        return "/tutor-dashboard";
+      case "ADMIN":
+        return "/admin-dashboard";
+      case "STUDENT":
+      default:
+        return "/dashboard";
+    }
+  };
 
   const form = useForm({
     defaultValues: {
@@ -29,20 +75,51 @@ export default function LoginForm() {
     onSubmit: async ({ value }) => {
       setIsLoading(true);
       try {
-        await authClient.signIn.email({
+        const result = await authClient.signIn.email({
           email: value.email,
           password: value.password,
         });
+        const { data, error } = normalizeAuthResult(result);
+
+        if (error) {
+          toast.error(getAuthErrorMessage(error, "Login failed."));
+          return;
+        }
+
+        const payload = data as {
+          user?: { id?: string; role?: string };
+          redirect?: boolean;
+          url?: string;
+        };
+
+        if (payload?.redirect && payload?.url) {
+          window.location.href = payload.url;
+          return;
+        }
+
+        let userRole = payload?.user?.role;
+
+        if (!payload?.user || !userRole) {
+          const sessionResult = await authClient.getSession();
+          const sessionPayload = normalizeAuthResult(sessionResult);
+          const sessionData = sessionPayload.data as {
+            user?: { role?: string };
+          };
+          userRole = sessionData?.user?.role;
+        }
 
         toast.success("Successfully logged in!");
-        router.push("/dashboard");
-      } catch (error: any) {
-        toast.error(error?.message || "Login failed. Please try again.");
+        router.push(getRedirectPath(userRole));
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Login failed. Please try again.";
+        toast.error(message);
       } finally {
         setIsLoading(false);
       }
     },
-    validatorAdapter: zodValidator(),
   });
 
   const handleGoogleSignIn = async () => {
@@ -51,8 +128,10 @@ export default function LoginForm() {
       await authClient.signIn.social({
         provider: "google",
       });
-    } catch (error: any) {
-      toast.error(error?.message || "Google sign-in failed");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Google sign-in failed";
+      toast.error(message);
       setIsLoading(false);
     }
   };
@@ -91,9 +170,11 @@ export default function LoginForm() {
                   onBlur={field.handleBlur}
                   disabled={isLoading}
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                {getFieldError(field.state.meta.errors) ? (
+                  <p className="text-sm text-destructive">
+                    {getFieldError(field.state.meta.errors)}
+                  </p>
+                ) : null}
               </div>
             )}
           </form.Field>
@@ -117,9 +198,11 @@ export default function LoginForm() {
                   onBlur={field.handleBlur}
                   disabled={isLoading}
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                {getFieldError(field.state.meta.errors) ? (
+                  <p className="text-sm text-destructive">
+                    {getFieldError(field.state.meta.errors)}
+                  </p>
+                ) : null}
               </div>
             )}
           </form.Field>
@@ -135,7 +218,9 @@ export default function LoginForm() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
 

@@ -7,30 +7,30 @@ export const userService = {
   getCurrentUserProfile: async () => {
     try {
       const res = await fetch(`${API_URL}/user/me`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      
+
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to fetch profile' } };
+      return { data: null, error: { message: "Failed to fetch profile" } };
     }
   },
 
-  // PATCH /api/user/me
+  // PUT /api/user/profile
   updateProfile: async (userData: Partial<User>) => {
     try {
-      const res = await fetch(`${API_URL}/user/me`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(userData)
+      const res = await fetch(`${API_URL}/user/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(userData),
       });
-      
+
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to update profile' } };
+      return { data: null, error: { message: "Failed to update profile" } };
     }
-  }
+  },
 };

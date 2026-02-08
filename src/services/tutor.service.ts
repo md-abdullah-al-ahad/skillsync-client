@@ -1,17 +1,20 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export const tutorService = {
-  // GET /api/tutors (with query params: category, minPrice, maxPrice, rating, search)
-  getTutors: async (filters?: {
-    category?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    rating?: number;
-    search?: string;
-  }, options?: { cache?: RequestCache; revalidate?: number }) => {
+  // GET /api/tutors (with query params: category, minPrice, maxPrice, minRating, search)
+  getTutors: async (
+    filters?: {
+      category?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      minRating?: number;
+      search?: string;
+    },
+    options?: { cache?: RequestCache; revalidate?: number },
+  ) => {
     try {
       const url = new URL(`${API_URL}/tutors`);
-      
+
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
           if (value !== undefined && value !== null && value !== "") {
@@ -26,10 +29,10 @@ export const tutorService = {
 
       const res = await fetch(url.toString(), config);
       const data = await res.json();
-      
+
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to fetch tutors' } };
+      return { data: null, error: { message: "Failed to fetch tutors" } };
     }
   },
 
@@ -40,7 +43,7 @@ export const tutorService = {
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to fetch tutor' } };
+      return { data: null, error: { message: "Failed to fetch tutor" } };
     }
   },
 
@@ -51,7 +54,10 @@ export const tutorService = {
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to fetch featured tutors' } };
+      return {
+        data: null,
+        error: { message: "Failed to fetch featured tutors" },
+      };
     }
   },
 
@@ -59,33 +65,37 @@ export const tutorService = {
   updateTutorProfile: async (data: any) => {
     try {
       const res = await fetch(`${API_URL}/tutor/profile`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(data)
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
       });
-      
+
       const result = await res.json();
       return { data: result, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to update profile' } };
+      return { data: null, error: { message: "Failed to update profile" } };
     }
   },
 
   // POST /api/tutor/availability
-  addAvailability: async (slot: { dayOfWeek: string; startTime: string; endTime: string }) => {
+  addAvailability: async (slot: {
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
+  }) => {
     try {
       const res = await fetch(`${API_URL}/tutor/availability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(slot)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(slot),
       });
-      
+
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to add availability' } };
+      return { data: null, error: { message: "Failed to add availability" } };
     }
   },
 
@@ -93,13 +103,13 @@ export const tutorService = {
   getAvailability: async () => {
     try {
       const res = await fetch(`${API_URL}/tutor/availability`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      
+
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to fetch availability' } };
+      return { data: null, error: { message: "Failed to fetch availability" } };
     }
   },
 
@@ -107,14 +117,17 @@ export const tutorService = {
   deleteAvailability: async (id: string) => {
     try {
       const res = await fetch(`${API_URL}/tutor/availability/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
+        method: "DELETE",
+        credentials: "include",
       });
-      
+
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to delete availability' } };
+      return {
+        data: null,
+        error: { message: "Failed to delete availability" },
+      };
     }
-  }
+  },
 };

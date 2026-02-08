@@ -1,5 +1,14 @@
-const AUTH_URL =
-  process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:5000/api/auth";
+const getAuthUrl = () => {
+  if (typeof window !== "undefined") {
+    return "/api/auth";
+  }
+
+  return (
+    process.env.AUTH_URL ||
+    process.env.NEXT_PUBLIC_AUTH_URL ||
+    "http://localhost:5000/api/auth"
+  );
+};
 
 export const authService = {
   // POST /api/auth/sign-up/email
@@ -10,7 +19,7 @@ export const authService = {
     role: "STUDENT" | "TUTOR";
   }) => {
     try {
-      const res = await fetch(`${AUTH_URL}/sign-up/email`, {
+      const res = await fetch(`${getAuthUrl()}/sign-up/email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -31,7 +40,7 @@ export const authService = {
   // POST /api/auth/sign-in/email
   login: async (credentials: { email: string; password: string }) => {
     try {
-      const res = await fetch(`${AUTH_URL}/sign-in/email`, {
+      const res = await fetch(`${getAuthUrl()}/sign-in/email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -52,7 +61,7 @@ export const authService = {
   // GET /api/auth/get-session
   getCurrentUser: async () => {
     try {
-      const res = await fetch(`${AUTH_URL}/get-session`, {
+      const res = await fetch(`${getAuthUrl()}/get-session`, {
         credentials: "include",
       });
 
@@ -67,7 +76,7 @@ export const authService = {
   // POST /api/auth/sign-out
   logout: async () => {
     try {
-      await fetch(`${AUTH_URL}/sign-out`, {
+      await fetch(`${getAuthUrl()}/sign-out`, {
         method: "POST",
         credentials: "include",
       });

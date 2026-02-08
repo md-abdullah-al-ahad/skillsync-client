@@ -14,6 +14,7 @@ export interface TutorProfile {
   // Relations (populated)
   user?: User;
   categories?: Category[];
+  availability?: AvailabilitySlot[];
   availabilitySlots?: AvailabilitySlot[];
 }
 
@@ -41,6 +42,6 @@ export interface TutorFilters {
   category?: string;
   minPrice?: number;
   maxPrice?: number;
-  rating?: number;
+  minRating?: number;
   search?: string;
 }

@@ -18,34 +18,46 @@ import { TutorFilters as TutorFiltersType } from "@/types";
 
 interface TutorFiltersProps {
   onFilterChange?: (filters: TutorFiltersType) => void;
-  categories?: { id: string; name: string }[];
+  categories?: { id: string; name: string; slug?: string | null }[];
 }
 
-export default function TutorFilters({ onFilterChange, categories = [] }: TutorFiltersProps) {
+export default function TutorFilters({
+  onFilterChange,
+  categories = [],
+}: TutorFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
+  const ratingParam = searchParams.get("minRating") ?? searchParams.get("rating");
+
   const [filters, setFilters] = useState<TutorFiltersType>({
     search: searchParams.get("search") || "",
     category: searchParams.get("category") || "",
-    minPrice: searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined,
-    maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined,
-    rating: searchParams.get("rating") ? Number(searchParams.get("rating")) : undefined,
+    minPrice: searchParams.get("minPrice")
+      ? Number(searchParams.get("minPrice"))
+      : undefined,
+    maxPrice: searchParams.get("maxPrice")
+      ? Number(searchParams.get("maxPrice"))
+      : undefined,
+    minRating: ratingParam ? Number(ratingParam) : undefined,
   });
 
   const handleFilterChange = (key: keyof TutorFiltersType, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    
+
     // Update URL params
     const params = new URLSearchParams(searchParams.toString());
+    if (key === "minRating") {
+      params.delete("rating");
+    }
     if (value && value !== "") {
       params.set(key, value.toString());
     } else {
       params.delete(key);
     }
     router.push(`?${params.toString()}`, { scroll: false });
-    
+
     // Call callback if provided
     onFilterChange?.(newFilters);
   };
@@ -56,7 +68,7 @@ export default function TutorFilters({ onFilterChange, categories = [] }: TutorF
       category: "",
       minPrice: undefined,
       maxPrice: undefined,
-      rating: undefined,
+      minRating: undefined,
     };
     setFilters(resetFilters);
     router.push(window.location.pathname, { scroll: false });
@@ -89,16 +101,18 @@ export default function TutorFilters({ onFilterChange, categories = [] }: TutorF
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
           <Select
-            value={filters.category}
-            onValueChange={(value) => handleFilterChange("category", value)}
+            value={filters.category || "all"}
+            onValueChange={(value) =>
+              handleFilterChange("category", value === "all" ? "" : value)
+            }
           >
             <SelectTrigger id="category">
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories</SelectItem>
+              <SelectItem value="all">All categories</SelectItem>
               {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
+                <SelectItem key={cat.id} value={cat.slug || cat.id}>
                   {cat.name}
                 </SelectItem>
               ))}
@@ -111,7 +125,10 @@ export default function TutorFilters({ onFilterChange, categories = [] }: TutorF
           <Label>Price Range (per hour)</Label>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <Label htmlFor="minPrice" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="minPrice"
+                className="text-xs text-muted-foreground"
+              >
                 Min
               </Label>
               <Input
@@ -120,13 +137,19 @@ export default function TutorFilters({ onFilterChange, categories = [] }: TutorF
                 placeholder="$0"
                 value={filters.minPrice || ""}
                 onChange={(e) =>
-                  handleFilterChange("minPrice", e.target.value ? Number(e.target.value) : undefined)
+                  handleFilterChange(
+                    "minPrice",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
                 }
                 min="0"
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="maxPrice" className="text-xs text-muted-foreground">
+              <Label
+                htmlFor="maxPrice"
+                className="text-xs text-muted-foreground"
+              >
                 Max
               </Label>
               <Input
@@ -135,7 +158,10 @@ export default function TutorFilters({ onFilterChange, categories = [] }: TutorF
                 placeholder="$200"
                 value={filters.maxPrice || ""}
                 onChange={(e) =>
-                  handleFilterChange("maxPrice", e.target.value ? Number(e.target.value) : undefined)
+                  handleFilterChange(
+                    "maxPrice",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
                 }
                 min="0"
               />
@@ -150,17 +176,20 @@ export default function TutorFilters({ onFilterChange, categories = [] }: TutorF
             {[1, 2, 3, 4, 5].map((rating) => (
               <Button
                 key={rating}
-                variant={filters.rating === rating ? "default" : "outline"}
+                variant={filters.minRating === rating ? "default" : "outline"}
                 size="sm"
                 onClick={() =>
-                  handleFilterChange("rating", filters.rating === rating ? undefined : rating)
+                  handleFilterChange(
+                    "minRating",
+                    filters.minRating === rating ? undefined : rating,
+                  )
                 }
                 className="flex items-center justify-center"
               >
                 {rating}
                 <Star
                   className={`ml-1 h-3 w-3 ${
-                    filters.rating === rating
+                    filters.minRating === rating
                       ? "fill-primary-foreground text-primary-foreground"
                       : "fill-foreground text-foreground"
                   }`}

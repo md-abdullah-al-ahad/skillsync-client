@@ -9,16 +9,16 @@ export const reviewService = {
   }) => {
     try {
       const res = await fetch(`${API_URL}/reviews`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(data)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
       });
-      
+
       const result = await res.json();
       return { data: result, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to create review' } };
+      return { data: null, error: { message: "Failed to create review" } };
     }
   },
 
@@ -29,7 +29,7 @@ export const reviewService = {
       const data = await res.json();
       return { data, error: null };
     } catch (err) {
-      return { data: null, error: { message: 'Failed to fetch reviews' } };
+      return { data: null, error: { message: "Failed to fetch reviews" } };
     }
-  }
+  },
 };

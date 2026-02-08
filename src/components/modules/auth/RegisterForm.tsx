@@ -3,14 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
-import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -24,13 +29,43 @@ const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["STUDENT", "TUTOR"], {
-    required_error: "Please select a role",
+    message: "Please select a role",
   }),
 });
 
 export default function RegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const getFieldError = (errors: unknown[] | undefined) => {
+    const err = errors?.[0] as any;
+    if (!err) return null;
+    if (typeof err === "string") return err;
+    if (typeof err === "object" && typeof err.message === "string") {
+      return err.message;
+    }
+    return null;
+  };
+  const normalizeAuthResult = (result: unknown) => {
+    if (!result || typeof result !== "object") {
+      return { data: null, error: "No response from server" };
+    }
+
+    const maybeResult = result as { data?: unknown; error?: unknown };
+    if ("data" in maybeResult || "error" in maybeResult) {
+      return { data: maybeResult.data, error: maybeResult.error };
+    }
+
+    return { data: result, error: null };
+  };
+  const getAuthErrorMessage = (error: unknown, fallback: string) => {
+    if (!error) return fallback;
+    if (typeof error === "string") return error;
+    if (typeof error === "object" && "message" in error) {
+      const message = (error as { message?: string }).message;
+      if (message) return message;
+    }
+    return fallback;
+  };
 
   const form = useForm({
     defaultValues: {
@@ -42,22 +77,48 @@ export default function RegisterForm() {
     onSubmit: async ({ value }) => {
       setIsLoading(true);
       try {
-        await authClient.signUp.email({
-          name: value.name,
-          email: value.email,
-          password: value.password,
-          role: value.role,
-        });
+        const result = await (authClient.signUp.email as any)(
+          {
+            name: value.name,
+            email: value.email,
+            password: value.password,
+            role: value.role,
+          },
+          {
+            onSuccess: async () => {
+              // Store role in user metadata or make additional API call
+              // Example: await fetch('/api/users/update-role', { method: 'POST', body: JSON.stringify({ role: value.role }) });
+            },
+          },
+        );
+        const { data, error } = normalizeAuthResult(result);
 
-        toast.success("Account created successfully!");
-        router.push("/dashboard");
-      } catch (error: any) {
-        toast.error(error?.message || "Registration failed. Please try again.");
+        if (error) {
+          toast.error(getAuthErrorMessage(error, "Registration failed."));
+          return;
+        }
+
+        const payload = data as { user?: { id?: string } };
+
+        if (!payload?.user) {
+          toast.error("Registration failed. Please try again.");
+          return;
+        }
+
+        toast.success(
+          "Account created successfully! Please verify your email before signing in.",
+        );
+        router.push("/login");
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Registration failed. Please try again.";
+        toast.error(message);
       } finally {
         setIsLoading(false);
       }
     },
-    validatorAdapter: zodValidator(),
   });
 
   return (
@@ -94,9 +155,11 @@ export default function RegisterForm() {
                   onBlur={field.handleBlur}
                   disabled={isLoading}
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                {getFieldError(field.state.meta.errors) ? (
+                  <p className="text-sm text-destructive">
+                    {getFieldError(field.state.meta.errors)}
+                  </p>
+                ) : null}
               </div>
             )}
           </form.Field>
@@ -120,9 +183,11 @@ export default function RegisterForm() {
                   onBlur={field.handleBlur}
                   disabled={isLoading}
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                {getFieldError(field.state.meta.errors) ? (
+                  <p className="text-sm text-destructive">
+                    {getFieldError(field.state.meta.errors)}
+                  </p>
+                ) : null}
               </div>
             )}
           </form.Field>
@@ -146,9 +211,11 @@ export default function RegisterForm() {
                   onBlur={field.handleBlur}
                   disabled={isLoading}
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                {getFieldError(field.state.meta.errors) ? (
+                  <p className="text-sm text-destructive">
+                    {getFieldError(field.state.meta.errors)}
+                  </p>
+                ) : null}
               </div>
             )}
           </form.Field>
@@ -165,7 +232,9 @@ export default function RegisterForm() {
                 <Label htmlFor={field.name}>I want to</Label>
                 <Select
                   value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value as "STUDENT" | "TUTOR")}
+                  onValueChange={(value) =>
+                    field.handleChange(value as "STUDENT" | "TUTOR")
+                  }
                   disabled={isLoading}
                 >
                   <SelectTrigger id={field.name}>
@@ -176,9 +245,11 @@ export default function RegisterForm() {
                     <SelectItem value="TUTOR">Teach as a Tutor</SelectItem>
                   </SelectContent>
                 </Select>
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                {getFieldError(field.state.meta.errors) ? (
+                  <p className="text-sm text-destructive">
+                    {getFieldError(field.state.meta.errors)}
+                  </p>
+                ) : null}
               </div>
             )}
           </form.Field>
@@ -191,7 +262,10 @@ export default function RegisterForm() {
           {/* Sign In Link */}
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <a href="/login" className="font-medium text-foreground hover:underline">
+            <a
+              href="/login"
+              className="font-medium text-foreground hover:underline"
+            >
               Sign in
             </a>
           </p>
