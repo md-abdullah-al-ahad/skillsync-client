@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
 
 async function handleAuthRequest(request: NextRequest) {
   const url = new URL(request.url);
+
+  // Handle verify-email page navigation (browser document requests)
   if (url.pathname.endsWith("/api/auth/verify-email")) {
     const acceptHeader = request.headers.get("accept") || "";
     const fetchDest = request.headers.get("sec-fetch-dest") || "";
@@ -28,21 +30,22 @@ async function handleAuthRequest(request: NextRequest) {
       }
     }
   }
+
   const pathname = url.pathname.replace("/api/auth", "");
   const searchParams = url.searchParams.toString();
 
   // Get the backend auth URL
-  const backendAuthUrl =
-    process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:5000/api/auth";
+  const backendAuthUrl = (
+    process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:5000/api/auth"
+  ).trim();
   const backendUrl = `${backendAuthUrl}${pathname}${searchParams ? `?${searchParams}` : ""}`;
 
   try {
-    // Forward the request to the backend
+    // Forward the request headers to the backend
     const headers: HeadersInit = {};
-
-    // Copy relevant headers
     request.headers.forEach((value, key) => {
-      if (key.toLowerCase() !== "host" && key.toLowerCase() !== "connection") {
+      const lower = key.toLowerCase();
+      if (lower !== "host" && lower !== "connection") {
         headers[key] = value;
       }
     });
@@ -50,6 +53,10 @@ async function handleAuthRequest(request: NextRequest) {
     const options: RequestInit = {
       method: request.method,
       headers,
+      // CRITICAL: Don't follow redirects — we need to capture the
+      // backend's redirect response (with Set-Cookie headers) and
+      // forward it to the browser ourselves.
+      redirect: "manual",
     };
 
     // Include body for POST requests
@@ -62,17 +69,42 @@ async function handleAuthRequest(request: NextRequest) {
 
     const response = await fetch(backendUrl, options);
 
-    // Handle redirect responses (like after email verification)
-    if (response.redirected) {
-      return NextResponse.redirect(response.url);
+    // Handle redirect responses (3xx) — forward them to the browser
+    // with all cookies intact (session cookies, OAuth state, etc.)
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (location) {
+        // Rewrite backend-pointing redirects to our client origin
+        let redirectUrl = location;
+        if (redirectUrl.startsWith(backendAuthUrl)) {
+          redirectUrl = redirectUrl.replace(
+            backendAuthUrl,
+            `${url.origin}/api/auth`,
+          );
+        }
+
+        const redirectResponse = NextResponse.redirect(
+          redirectUrl,
+          response.status,
+        );
+
+        // Forward all cookies from the backend (session, CSRF, etc.)
+        const setCookieHeaders = response.headers.getSetCookie();
+        if (setCookieHeaders && setCookieHeaders.length > 0) {
+          setCookieHeaders.forEach((cookie) => {
+            redirectResponse.headers.append("Set-Cookie", cookie);
+          });
+        }
+
+        return redirectResponse;
+      }
     }
 
-    // Get response body
+    // Handle non-redirect responses (JSON, text, etc.)
     const contentType = response.headers.get("content-type") || "";
     const isJson = contentType.includes("application/json");
     const responseBody = isJson ? await response.json() : await response.text();
 
-    // Create response with same status
     const nextResponse = isJson
       ? NextResponse.json(responseBody, {
           status: response.status,

@@ -73,7 +73,11 @@ export default function Navbar() {
 
             {isAuthenticated ? (
               <>
-                <Button variant="outline" asChild className="hidden sm:inline-flex">
+                <Button
+                  variant="outline"
+                  asChild
+                  className="hidden sm:inline-flex"
+                >
                   <Link href={getDashboardLink()}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Dashboard
@@ -154,36 +158,38 @@ export default function Navbar() {
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right">
-                <SheetHeader>
+              <SheetContent side="right" className="px-6 py-6">
+                <SheetHeader className="px-0 pb-4">
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 flex flex-col space-y-4">
+                <div className="flex flex-col space-y-2">
                   <Link
                     href="/"
-                    className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
+                    className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
                   >
                     Home
                   </Link>
                   <Link
                     href="/tutors"
-                    className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground"
+                    className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
                   >
                     Find Tutors
                   </Link>
 
                   {isAuthenticated ? (
                     <>
-                      <div className="border-t pt-4">
-                        <p className="mb-2 text-sm font-medium">{user?.name}</p>
-                        <p className="mb-4 text-xs text-muted-foreground">
+                      <div className="my-2 border-t pt-4 px-3">
+                        <p className="mb-1 text-sm font-semibold">
+                          {user?.name}
+                        </p>
+                        <p className="mb-2 text-xs text-muted-foreground">
                           {user?.email}
                         </p>
                       </div>
                       <Button
                         variant="outline"
                         asChild
-                        className="w-full justify-start"
+                        className="w-full justify-start px-3 py-2.5 h-auto"
                       >
                         <Link href={getDashboardLink()}>
                           <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -193,7 +199,7 @@ export default function Navbar() {
                       <Button
                         variant="outline"
                         asChild
-                        className="w-full justify-start"
+                        className="w-full justify-start px-3 py-2.5 h-auto"
                       >
                         <Link href="/dashboard/profile">
                           <User className="mr-2 h-4 w-4" />
@@ -203,14 +209,14 @@ export default function Navbar() {
                       <Button
                         variant="outline"
                         onClick={() => logout()}
-                        className="w-full justify-start"
+                        className="w-full justify-start px-3 py-2.5 h-auto"
                       >
                         <LogOut className="mr-2 h-4 w-4" />
                         Log out
                       </Button>
                     </>
                   ) : (
-                    <div className="flex flex-col space-y-2 border-t pt-4">
+                    <div className="flex flex-col space-y-2 border-t pt-4 mt-2">
                       <Button variant="outline" asChild className="w-full">
                         <Link href="/login">Log in</Link>
                       </Button>
