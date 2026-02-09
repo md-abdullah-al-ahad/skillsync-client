@@ -55,7 +55,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     setIsLoading(true);
-    const { data, error } = await adminService.getAllUsers();
+    const { data, error } = await adminService.getAllUsers({ limit: 1000 });
 
     if (error) {
       toast.error("Failed to fetch users");
@@ -68,7 +68,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     const loadUsers = async () => {
       setIsLoading(true);
-      const { data, error } = await adminService.getAllUsers();
+      const { data, error } = await adminService.getAllUsers({ limit: 1000 });
 
       if (error) {
         toast.error("Failed to fetch users");

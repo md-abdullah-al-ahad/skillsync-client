@@ -41,13 +41,17 @@ export const adminService = {
     role?: string;
     status?: string;
     search?: string;
+    page?: number;
+    limit?: number;
   }) => {
     try {
       let url = `${getAdminApiUrl()}/users`;
       if (filters) {
         const params = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value);
+          if (value !== undefined && value !== null && value !== "") {
+            params.append(key, String(value));
+          }
         });
         const query = params.toString();
         if (query) {
@@ -57,6 +61,7 @@ export const adminService = {
 
       const res = await fetch(url, {
         credentials: "include",
+        cache: "no-store",
       });
 
       const result = await res.json();
@@ -105,10 +110,27 @@ export const adminService = {
   },
 
   // GET /api/admin/bookings
-  getAllBookings: async () => {
+  getAllBookings: async (filters?: { status?: string; page?: number; limit?: number }) => {
     try {
-      const res = await fetch(`${getAdminApiUrl()}/bookings`, {
+      let url = `${getAdminApiUrl()}/bookings`;
+      if (filters) {
+        const params = new URLSearchParams();
+        if (filters.status) params.append("status", filters.status);
+        if (typeof filters.page === "number") {
+          params.append("page", String(filters.page));
+        }
+        if (typeof filters.limit === "number") {
+          params.append("limit", String(filters.limit));
+        }
+        const query = params.toString();
+        if (query) {
+          url = `${url}?${query}`;
+        }
+      }
+
+      const res = await fetch(url, {
         credentials: "include",
+        cache: "no-store",
       });
 
       const result = await res.json();

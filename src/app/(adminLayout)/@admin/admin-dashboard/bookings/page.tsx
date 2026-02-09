@@ -54,7 +54,7 @@ export default function AdminBookingsPage() {
 
   const fetchBookings = async () => {
     setIsLoading(true);
-    const { data, error } = await adminService.getAllBookings();
+    const { data, error } = await adminService.getAllBookings({ limit: 1000 });
 
     if (error) {
       toast.error("Failed to fetch bookings");

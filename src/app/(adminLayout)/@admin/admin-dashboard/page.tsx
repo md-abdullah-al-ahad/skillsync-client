@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
 
       const [statsResponse, bookingsResponse] = await Promise.all([
         adminService.getStats(),
-        adminService.getAllBookings(),
+        adminService.getAllBookings({ limit: 1000 }),
       ]);
 
       if (statsResponse.data) {

@@ -18,7 +18,7 @@ export default function StudentBookingsPage() {
 
   const fetchBookings = async () => {
     setIsLoading(true);
-    const { data } = await bookingService.getBookings();
+    const { data } = await bookingService.getBookings({ limit: 1000 });
     setBookings(Array.isArray(data) ? (data as Booking[]) : []);
     setIsLoading(false);
   };
