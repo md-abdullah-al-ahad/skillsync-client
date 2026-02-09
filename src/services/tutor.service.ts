@@ -53,8 +53,16 @@ export const tutorService = {
   getTutorById: async (id: string) => {
     try {
       const res = await fetch(`${API_URL}/tutors/${id}`);
-      const data = await res.json();
-      return { data, error: null };
+      const result = await res.json();
+
+      if (!res.ok || result?.success === false) {
+        return {
+          data: null,
+          error: { message: result?.message || "Failed to fetch tutor" },
+        };
+      }
+
+      return { data: result?.data ?? result, error: null };
     } catch (err) {
       return { data: null, error: { message: "Failed to fetch tutor" } };
     }

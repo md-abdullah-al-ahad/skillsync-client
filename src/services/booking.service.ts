@@ -32,6 +32,7 @@ export const bookingService = {
   }) => {
     try {
       const res = await fetch(`${getBookingsApiUrl()}`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(data),
