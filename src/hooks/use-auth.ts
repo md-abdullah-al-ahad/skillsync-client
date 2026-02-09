@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { userService } from "@/services/user.service";
 import { User } from "@/types";
@@ -8,6 +9,7 @@ import { User } from "@/types";
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     checkAuth();
@@ -82,11 +84,13 @@ export function useAuth() {
     return { success: true, data: result.data };
   };
 
-  const logout = async () => {
+  const logout = async (redirectTo: string = "/login") => {
     await authService.logout();
     // Clear role cookie used by middleware for role-based access control
     document.cookie = "user-role=; path=/; max-age=0";
     setUser(null);
+    router.replace(redirectTo);
+    router.refresh();
   };
 
   return {
